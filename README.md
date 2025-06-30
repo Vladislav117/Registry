@@ -1,6 +1,6 @@
-# JavaLibraryTemplate
+# Registry
 
-JavaLibraryTemplate - шаблон java-библиотеки.
+Registry - объект-реестр.
 
 ## Добавление зависимости
 
@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.Vladislav117:JavaLibraryTemplate:0.0.0'
+    implementation 'com.github.Vladislav117:Registry:0.0.0'
 }
 ```
 
@@ -28,4 +28,6 @@ dependencies {
 
 ## Использование
 
-Для использования шаблона необходимо адаптировать его.
+```java
+// Будет добавлено позже
+```
