@@ -161,6 +161,7 @@ public class Registry<IdType, ObjectType> {
      * @param id Id объекта
      * @return Этот же реестр.
      */
+    @SuppressWarnings("UnusedReturnValue")
     public Registry<IdType, ObjectType> remove(IdType id) {
         if (!objectMap.containsKey(id)) return this;
         ObjectType object = objectMap.get(id);
@@ -172,10 +173,14 @@ public class Registry<IdType, ObjectType> {
 
     /**
      * Очистка реестра.
+     *
+     * @return Этот же реестр.
      */
-    public void clear() {
+    @SuppressWarnings("UnusedReturnValue")
+    public Registry<IdType, ObjectType> clear() {
         objectMap.clear();
         objectList.clear();
         idsList.clear();
+        return this;
     }
 }
