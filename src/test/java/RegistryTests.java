@@ -31,4 +31,20 @@ public final class RegistryTests {
         Assertions.assertTrue(registry.containsObject(2));
         Assertions.assertFalse(registry.containsId(0));
     }
+
+    @Test
+    public void testHandlers() {
+        Registry<String, Boolean> registry = new Registry<>();
+        registry.getObjectAdditionHandlers().add(0, (id, object) -> {
+            Assertions.assertEquals("true", id);
+            Assertions.assertTrue(object);
+        });
+        registry.getObjectRemovalHandlers().add(0, (id, object) -> {
+            Assertions.assertEquals("true", id);
+            Assertions.assertTrue(object);
+        });
+        registry.add("true", true);
+        registry.remove("true");
+        registry.clear();
+    }
 }

@@ -3,6 +3,7 @@ package ru.vladislav117.registry;
 import org.jetbrains.annotations.Nullable;
 import ru.vladislav117.registry.error.RegistryIdError;
 import ru.vladislav117.registry.error.RegistryIdExistsError;
+import ru.vladislav117.registry.handler.RegistryHandlers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,7 +19,9 @@ import java.util.Map;
 public class Registry<IdType, ObjectType> {
     protected Map<IdType, ObjectType> objectMap;
     protected List<ObjectType> objectList;
-    protected List<IdType> idsList;
+    protected List<IdType> idList;
+    protected RegistryHandlers<IdType, ObjectType> objectAdditionHandlers = new RegistryHandlers<>();
+    protected RegistryHandlers<IdType, ObjectType> objectRemovalHandlers = new RegistryHandlers<>();
 
     /**
      * Создание нового реестра объектов.
@@ -28,7 +31,7 @@ public class Registry<IdType, ObjectType> {
     public Registry(int initialCapacity) {
         objectMap = new HashMap<>(initialCapacity);
         objectList = new ArrayList<>(initialCapacity);
-        idsList = new ArrayList<>(initialCapacity);
+        idList = new ArrayList<>(initialCapacity);
     }
 
     /**
@@ -37,7 +40,27 @@ public class Registry<IdType, ObjectType> {
     public Registry() {
         objectMap = new HashMap<>();
         objectList = new ArrayList<>();
-        idsList = new ArrayList<>();
+        idList = new ArrayList<>();
+    }
+
+    /**
+     * Получение обработчиков добавления объекта.
+     * Обработчики добавления объекта вызываются после добавления объекта.
+     *
+     * @return Обработчики добавления объекта.
+     */
+    public RegistryHandlers<IdType, ObjectType> getObjectAdditionHandlers() {
+        return objectAdditionHandlers;
+    }
+
+    /**
+     * Получение обработчиков удаления объекта.
+     * Обработчики удаления объекта вызываются после удаления объекта.
+     *
+     * @return Обработчики удаления объекта.
+     */
+    public RegistryHandlers<IdType, ObjectType> getObjectRemovalHandlers() {
+        return objectRemovalHandlers;
     }
 
     /**
@@ -120,12 +143,13 @@ public class Registry<IdType, ObjectType> {
      * @return Id всех объектов реестра в порядке добавления.
      */
     public List<IdType> getAllIds() {
-        return idsList;
+        return idList;
     }
 
     /**
      * Добавление объекта в реестр.
      * Если указанный id уже есть в реестре, будет вызвано исключение.
+     * Обработчики добавления объекта вызываются после добавления объекта.
      *
      * @param id     Id объекта
      * @param object Объект
@@ -137,7 +161,8 @@ public class Registry<IdType, ObjectType> {
         if (objectMap.containsKey(id)) throw new RegistryIdExistsError(id);
         objectMap.put(id, object);
         objectList.add(object);
-        idsList.add(id);
+        idList.add(id);
+        if (!objectAdditionHandlers.isEmpty()) objectAdditionHandlers.handle(id, object);
         return this;
     }
 
@@ -157,6 +182,7 @@ public class Registry<IdType, ObjectType> {
 
     /**
      * Удаление объекта из реестра.
+     * Обработчики удаления объекта вызываются после удаления объекта.
      *
      * @param id Id объекта
      * @return Этот же реестр.
@@ -167,20 +193,33 @@ public class Registry<IdType, ObjectType> {
         ObjectType object = objectMap.get(id);
         objectMap.remove(id);
         objectList.removeIf(o -> (o == object || o.equals(object))); // TODO: Change this
-        idsList.removeIf(o -> (o == id || o.equals(id))); // TODO: Change this
+        idList.removeIf(o -> (o == id || o.equals(id))); // TODO: Change this
+        if (!objectRemovalHandlers.isEmpty()) objectRemovalHandlers.handle(id, object);
         return this;
     }
 
     /**
      * Очистка реестра.
+     * Обработчики удаления объекта вызываются после удаления всех объектов.
      *
      * @return Этот же реестр.
      */
-    @SuppressWarnings("UnusedReturnValue")
+    @SuppressWarnings({"unchecked", "UnusedReturnValue"})
     public Registry<IdType, ObjectType> clear() {
+        IdType[] ids = null;
+        ObjectType[] objects = null;
+        if (!objectRemovalHandlers.isEmpty()) {
+            ids = (IdType[]) idList.toArray(Object[]::new);
+            objects = (ObjectType[]) objectList.toArray(Object[]::new);
+        }
         objectMap.clear();
         objectList.clear();
-        idsList.clear();
+        idList.clear();
+        if (ids != null) {
+            for (int index = 0; index < ids.length; index++) {
+                objectRemovalHandlers.handle(ids[index], objects[index]);
+            }
+        }
         return this;
     }
 }
