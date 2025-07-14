@@ -53,7 +53,7 @@ public class Registry<IdType, ObjectType> {
     /**
      * Проверка, имеется ли объект в реестре.
      *
-     * @param object Объекта
+     * @param object Объект
      * @return Наличие объекта в реестре.
      */
     public boolean containsObject(ObjectType object) {
